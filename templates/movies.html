@@ -1,0 +1,26 @@
+{% extends "base.html" %} 
+{% block content %} 
+
+<ul style="list-style:none">
+{% for movie in movies %}
+  <li>
+    <b>{{ movie.title }}</b> is a {{ movie.genre }} movie and it's rating is {{ movie.rating }} {{ movie.stars | safe }}
+
+    <!----- Emoji rating system ----->
+    {% if movie.rating >= 5 %}
+    🤯
+    {% elif movie.rating >= 4 and movie.rating < 5 %}
+    🙂
+    {% elif movie.rating >= 3 and movie.rating < 4 %}
+    😐
+    {% elif movie.rating >= 2 and movie.rating < 3 %}
+    🙁
+    {% else %}
+    🤮
+    {% endif %}
+    
+  </li>
+{% endfor %}
+</ul>
+
+{% endblock %} 

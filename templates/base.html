@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <title style=padding-left:5px;>{{title}}</title>
+
+  </head>
+  <body>
+    <!-- Styles -->
+    <style>
+      .fa {color: gold;}
+      .wrapper {padding-left:5px;}
+    </style>
+    <!-- Title -->
+  <h1 style=padding-left:5px;>{{title}}</h1>
+    
+    <!-- Nav -->
+    <div class="w3-bar w3-black">
+      <a href="/" class="w3-bar-item w3-button">Home</a>
+      <a href="/about" class="w3-bar-item w3-button">About</a>
+      <a href="/hipster" class="w3-bar-item w3-button">Hipster</a>
+      <a href="/coffee" class="w3-bar-item w3-button">Coffee</a>
+      <a href="/movies" class="w3-bar-item w3-button">Movies</a>
+    </div>
+
+  <div class="wrapper">
+    {% block content %}
+    {% endblock %}
+  </div>
