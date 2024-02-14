@@ -1,7 +1,16 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, url_for
+
+#create a secret key for security
+import os
+
+app = Flask(__name__)
+
 import utils as util
 
 app = Flask(__name__)
+
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY',
+                                          'default_secret_key')
 
 
 @app.route('/')
@@ -16,10 +25,57 @@ def about():
   return render_template("about.html", title=title)
 
 
-@app.route('/register')
+# Route for the form page
+@app.route('/register', methods=['GET', 'POST'])
 def register():
   title = "Register"
-  return render_template("register.html", title=title)
+  feedback = None
+  if request.method == 'POST':
+    feedback = register_data(request.form)
+
+  context = {"title": title, "feedback": feedback}
+  return render_template('register.html', **context)
+
+
+# Replace _ with space,
+# Title case key and value, excludes email and bio from title case
+# Lists all hobbies selected
+def register_data(form_data):
+  return [
+      f"{key.replace('_', ' ').replace('[]', '').title()}: {', '.join(map(str, form_data.getlist(key))).title()}"
+      if key == 'hobbies[]' else
+      f"{key.replace('_', ' ').title()}: {value.title()}" if key.lower()
+      not in ['email', 'bio'] else f"{key.replace('_', ' ').title()}: {value}"
+      for key, value in form_data.items()
+  ]
+
+
+# ---- old code -----
+# def register_data(form_data):
+#   feedback = []
+
+#   for key, value in form_data.items():
+#     if key == 'hobbies[]':
+#       # Handle hobbies as a list
+#       hobbies = form_data.getlist(key)
+#       feedback.append(
+#           f"{key.replace('_', ' ').replace('[]', '')}: {', '.join(map(str, hobbies))}"
+#       )
+#     else:
+#       feedback.append(f"{key.replace('_', ' ')}: {value}")
+
+#   return feedback
+
+# used list comprehension to simplify code
+# def register_data(form_data):
+#   return [f"{key}: {value}" for key, value in form_data.items()]
+
+# ---- old code -----
+# def register_data(form_data):
+#   feedback = []
+#   for key, value in form_data.items():
+#     feedback.append(f"{key}: {value}")
+#   return feedback
 
 
 @app.route('/hipster')
