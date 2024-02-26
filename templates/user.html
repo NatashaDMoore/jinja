@@ -1,0 +1,32 @@
+{% extends "base.html" %} 
+{% block content %}
+
+<div class="w3-container" style="display:flex;justify-content:space-around">
+  <!-- Card -->
+  <div class="w3-card-4 w3-center w3-animate-zoom" style="max-width:400px">
+  
+<header class="w3-container w3-light-grey">
+  <h1>{{ user.last_name }} {{ user.first_name }}</h1>
+</header>
+  
+<div class="w3-container">
+  <p>
+    {% if(user.id % 2 == 0) %}
+       <img style="align:right;" src="https://randomuser.me/api/portraits/men/{{ user.id }}.jpg" />
+    {% else %}
+       <img style="align:right;" src="https://randomuser.me/api/portraits/women/{{ user.id }}.jpg" />
+    {% endif %}
+
+  </p>
+  <p>Bio: I'm baby blog disrupt hoodie gochujang, blue bottle bruh vegan williamsburg pug. Biodiesel hoodie typewriter, bitters tacos meggings master cleanse yr post-ironic try-hard 90's? Pop-up copper mug grailed bushwick selvage, yes plz semiotics!</p><p> Hella truffaut tote bag, biodiesel glossier organic live-edge man bun mixtape. Mukbang bushwick copper mug 3 wolf moon.</p><p> Gentrify tacos vinyl occupy beard, forage scenester tilde synth. Echo park vape kale chips listicle!</p>
+</div>
+
+<footer class="w3-container w3-light-grey">
+  <h5><em>{{ user.email }}</em></h5>
+  <p><a href="/users">back</a></p>
+</footer>
+
+</div>
+</div>
+
+{% endblock %}

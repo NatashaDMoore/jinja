@@ -6,17 +6,27 @@ import os
 # Using JSON for data
 import json
 
-app = Flask(__name__)
-
 import utils as util
+
+# Database
+from models import db
+from models.category import Category
+from models.recipe import Recipe
+
+# loads default recipe data
+from default_data import create_default_data
 
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY',
                                           'default_secret_key')
-
+# Database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///recipes.db'
+db.init_app(app)
 
 #=================== ROUTES ===================#
+
+
 @app.route('/')
 def index():
   title = "Home"
@@ -101,6 +111,26 @@ def register_data(form_data):
   ]
 
 
+# Recipes and Recipe routes
+@app.route("/recipes")
+def recipes():
+  all_recipes = Recipe.query.all()
+  title = "Recipes"
+  context = {"title": title, "recipes": all_recipes}
+  return render_template("recipes.html", **context)
+
+
+@app.route("/recipe/<int:recipe_id>")
+def recipe(recipe_id):
+  this_recipe = Recipe.query.get(recipe_id)
+  title = "Recipe"
+  context = {"title": "Recipe", "recipe": this_recipe}
+  if this_recipe:
+    return render_template('recipe.html', **context)
+  else:
+    return render_template("404.html", title="404"), 404
+
+
 # ---- old code -----
 # used list comprehension to simplify code
 # def register_data(form_data):
@@ -130,8 +160,49 @@ def users():
 
 # View page for each user
 @app.route('/user/<int:user_number>')
-def user(user_number):
-  return f'Content for User {user_number}'
+def show_user(user_number):
+  this_user = load_user_data(user_number)
+  if this_user:
+    title = "User"
+    context = {"title": title, "user": this_user}
+    return render_template("user.html", **context)
+  else:
+    return 'User not found', 404
 
+
+def load_user_data(user_number):
+  # Read project data from JSON file
+  with open('test.json') as json_file:
+    user_data = json.load(json_file)
+    user = next((u for u in user_data if u['id'] == user_number), None)
+    return user
+
+
+# ----- old code -----
+# @app.route('/user/<int:user_number>')
+# def user(user_number):
+#   # Read project data from JSON file
+#   with open('test.json') as json_file:
+#       user_data = json.load(json_file)
+#       this_user = user_data[user_number]
+#   title = "User"
+#   context = {
+#     "title": title,
+#     "user":  this_user
+#   }
+#   return render_template("user.html", **context)
+
+# ----- old code -----
+# @app.route('/user/<int:user_number>')
+# def user(user_number):
+#   return f'Content for User {user_number}'
+
+# Database
+with app.app_context():
+  db.create_all()
+
+  # !! Remove this code to add your own data instead of default data
+  #removes all data and loads defaults:
+  create_default_data(db, Recipe, Category)
 
 app.run(host='0.0.0.0', port=81)
