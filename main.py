@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, url_for
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 
 # To create a secret key
 import os
@@ -196,6 +198,16 @@ def load_user_data(user_number):
 # @app.route('/user/<int:user_number>')
 # def user(user_number):
 #   return f'Content for User {user_number}'
+
+
+class RecipeView(ModelView):
+  column_searchable_list = ['name', 'author']
+
+
+admin = Admin(app)
+admin.url = '/admin/'  #would not work on repl w/o this!
+admin.add_view(RecipeView(Recipe, db.session))
+admin.add_view(ModelView(Category, db.session))
 
 # Database
 with app.app_context():
