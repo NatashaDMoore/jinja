@@ -22,6 +22,7 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY',
                                           'default_secret_key')
+
 # Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///recipes.db'
 db.init_app(app)
@@ -88,7 +89,7 @@ def movies():
   return render_template("movies.html", **context)
 
 
-# Route for the form page
+#----- Form Page -----#
 @app.route('/register', methods=['GET', 'POST'])
 def register():
   title = "Register"
@@ -113,7 +114,7 @@ def register_data(form_data):
   ]
 
 
-# Recipes and Recipe routes
+#----- Recipes Page -----#
 @app.route("/recipes")
 def recipes():
   all_recipes = Recipe.query.all()
@@ -121,7 +122,7 @@ def recipes():
   context = {"title": title, "recipes": all_recipes}
   return render_template("recipes.html", **context)
 
-
+#----- Recipe Page -----#
 @app.route("/recipe/<int:recipe_id>")
 def recipe(recipe_id):
   this_recipe = Recipe.query.get(recipe_id)
@@ -146,7 +147,7 @@ def recipe(recipe_id):
 #   return feedback
 
 
-# Route for the users page
+#----- Users Page -----#
 @app.route('/users')
 def users():
 
@@ -160,7 +161,7 @@ def users():
   return render_template("users.html", **context)
 
 
-# View page for each user
+#----- User Page -----#
 @app.route('/user/<int:user_number>')
 def show_user(user_number):
   this_user = load_user_data(user_number)
@@ -203,13 +204,14 @@ def load_user_data(user_number):
 class RecipeView(ModelView):
   column_searchable_list = ['name', 'author']
 
-
+# Admin page
 admin = Admin(app)
 admin.url = '/admin/'  #would not work on repl w/o this!
 admin.add_view(RecipeView(Recipe, db.session))
 admin.add_view(ModelView(Category, db.session))
 
-# Database
+
+#----- Database -----#
 with app.app_context():
   db.create_all()
 

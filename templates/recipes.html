@@ -1,9 +1,32 @@
 {% extends 'base.html' %}
 {% block content %}
 <p>Below are some recipes suggested by our creative staff</p>
-    <ul>
+
+
+
+ <table class="w3-table-all w3-hoverable">
+  <tr>
+    <th>Recipe</th>
+    <th>Author</th>
+    <th>Category</th>
+    <th>Rating</th>
+  </tr>
+
+{% for recipe in recipes %}
+
+  <tr>
+    <td><a href="{{ url_for('recipe', recipe_id=recipe.id) }}">{{ recipe.name }}</a></td>
+    <td>{{ recipe.author }}</td>
+    <td>{{ recipe.category.name }}</td>
+    <td>{{ recipe.rating }}</td>
+  </tr>
+
+   {% endfor %}
+   
+    <!-- <ul>
         {% for recipe in recipes %}
             <li><a href="{{ url_for('recipe', recipe_id=recipe.id) }}">{{ recipe.name }}</a></li>
         {% endfor %}
-    </ul>
+    </ul> -->
+   
 {% endblock %}
