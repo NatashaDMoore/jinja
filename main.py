@@ -10,8 +10,11 @@ import json
 
 import utils as util
 
-# import recipeadd
-from forms import RecipeAdd
+#wtf forms import
+from forms import RecipeAdd, RecipeEdit
+
+#add CSRF protection to forms
+from flask_wtf import CSRFProtect
 
 # Database
 from models import db
@@ -26,11 +29,16 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY',
                                           'default_secret_key')
 
+#add csrf after secret key
+csrf = CSRFProtect(app)
+
 # Database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///recipes.db'
 db.init_app(app)
 
-#=================== ROUTES ===================#
+# ============================================================================
+#                               ROUTES
+# ============================================================================
 
 
 @app.route('/')
@@ -56,8 +64,10 @@ def coffee():
   title = "Coffee"
   return render_template("coffee.html", title=title)
 
+# ============================================================================
+#                               MOVIE
 
-#----- Movie dictionary -----#
+# --------------- MOVIE DICTIONARY ---------------
 movie_dict = [{
     "title": "Napoleon",
     "genre": "Drama",
@@ -83,7 +93,7 @@ movie_dict = [{
 # Variable that holds the movie.stars function that movie_dict passes thru
 movie_dict = util.movie_stars(movie_dict)
 
-
+# --------------- MOVIES ---------------
 @app.route('/movies')
 def movies():
 
@@ -92,7 +102,9 @@ def movies():
   return render_template("movies.html", **context)
 
 
-#----- Form Page -----#
+# ============================================================================
+#                               FORM
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
   title = "Register"
@@ -116,31 +128,36 @@ def register_data(form_data):
       for key, value in form_data.items()
   ]
 
-# --- Recipe add_form route with feedback ---
+# ============================================================================
+#                               RECIPES
 
-@app.route('/add_recipe', methods=['GET', 'POST'])
-def add_recipe():
-    form = RecipeAdd()
 
-    # Populate the category choices dynamically
+# --------------- DELETE RECIPE ---------------
+@app.route('/delete_recipe/<int:id>', methods=['POST'])
+def delete_recipe(id):
+    recipe = Recipe.query.get_or_404(id)
+    db.session.delete(recipe)
+    db.session.commit()
+    flash('Recipe deleted successfully!', 'success')
+    return redirect(url_for('recipes'))
+
+
+# --------------- EDIT RECIPE ---------------
+
+@app.route('/edit_recipe/<int:recipe_id>', methods=['GET', 'POST'])
+def edit_recipe(recipe_id):
+    # Retrieve the recipe from the database
+    recipe = Recipe.query.get_or_404(recipe_id)
+    form = RecipeEdit(obj=recipe)
+
+    # Populate categories in the form
     form.category_id.choices = [(category.id, category.name) for category in Category.query.all()]
 
-    if request.method == 'POST' and form.validate_on_submit():
-        # Create a new recipe instance and add it to the database
-        new_recipe = Recipe(
-            name=form.name.data,
-            author=form.author.data,
-            description=form.description.data,
-            ingredients=form.ingredients.data,
-            instructions=form.instructions.data,
-            rating=form.rating.data,
-            category_id=form.category_id.data
-        )
-        db.session.add(new_recipe)
-        db.session.commit()
 
-        #inform user of success!
-        flash('Recipe added successfully!', 'success')
+    if request.method == 'POST' and form.validate_on_submit():
+        form.populate_obj(recipe)  # Update the recipe object with form data
+        db.session.commit()
+        flash('Recipe updated successfully!', 'success')
         return redirect(url_for('recipes'))
 
     #form did NOT validate
@@ -148,13 +165,50 @@ def add_recipe():
           for field, errors in form.errors.items():
               for error in errors:
                   flash(f"Error in {field}: {error}", 'error')
-          return render_template('add_recipe.html', form=form)
+          return render_template('edit_recipe.html', form=form, recipe=recipe)
 
-    #default via GET shows form  
+    return render_template('edit_recipe.html', form=form, recipe=recipe)
+
+
+
+# --------------- ADD RECIPE ---------------
+
+@app.route('/add_recipe', methods=['GET', 'POST'])
+def add_recipe():
+  form = RecipeAdd()
+
+  # Populate the category choices dynamically
+  form.category_id.choices = [(category.id, category.name)
+                              for category in Category.query.all()]
+
+  if request.method == 'POST' and form.validate_on_submit():
+    # Create a new recipe instance and add it to the database
+    new_recipe = Recipe(name=form.name.data,
+                        author=form.author.data,
+                        description=form.description.data,
+                        ingredients=form.ingredients.data,
+                        instructions=form.instructions.data,
+                        rating=form.rating.data,
+                        category_id=form.category_id.data)
+    db.session.add(new_recipe)
+    db.session.commit()
+
+    #inform user of success!
+    flash('Recipe added successfully!', 'success')
+    return redirect(url_for('recipes'))
+
+  #form did NOT validate
+  if request.method == 'POST' and not form.validate():
+    for field, errors in form.errors.items():
+      for error in errors:
+        flash(f"Error in {field}: {error}", 'error')
     return render_template('add_recipe.html', form=form)
 
+  #default via GET shows form
+  return render_template('add_recipe.html', form=form)
 
-#----- Recipes Page -----#
+
+  # --------------- RECIPES LIST ---------------
 @app.route("/recipes")
 def recipes():
   all_recipes = Recipe.query.all()
@@ -163,7 +217,7 @@ def recipes():
   return render_template("recipes.html", **context)
 
 
-#----- Recipe Page -----#
+# --------------- RECIPE VIEW ---------------
 @app.route("/recipe/<int:recipe_id>")
 def recipe(recipe_id):
   this_recipe = db.session.get(Recipe, recipe_id)
@@ -175,20 +229,10 @@ def recipe(recipe_id):
     return render_template("404.html", title="404"), 404
 
 
-# ---- old code -----
-# used list comprehension to simplify code
-# def register_data(form_data):
-#   return [f"{key}: {value}" for key, value in form_data.items()]
+# ============================================================================
+#                               USERS
 
-# ---- old code -----
-# def register_data(form_data):
-#   feedback = []
-#   for key, value in form_data.items():
-#     feedback.append(f"{key}: {value}")
-#   return feedback
-
-
-#----- Users Page -----#
+# --------------- USERS LIST ---------------
 @app.route('/users')
 def users():
 
@@ -202,7 +246,7 @@ def users():
   return render_template("users.html", **context)
 
 
-#----- User Page -----#
+# --------------- USER VIEW ---------------
 @app.route('/user/<int:user_number>')
 def show_user(user_number):
   this_user = load_user_data(user_number)
@@ -222,26 +266,7 @@ def load_user_data(user_number):
     return user
 
 
-# ----- old code -----
-# @app.route('/user/<int:user_number>')
-# def user(user_number):
-#   # Read project data from JSON file
-#   with open('test.json') as json_file:
-#       user_data = json.load(json_file)
-#       this_user = user_data[user_number]
-#   title = "User"
-#   context = {
-#     "title": title,
-#     "user":  this_user
-#   }
-#   return render_template("user.html", **context)
-
-# ----- old code -----
-# @app.route('/user/<int:user_number>')
-# def user(user_number):
-#   return f'Content for User {user_number}'
-
-
+# Search Recipe
 class RecipeView(ModelView):
   column_searchable_list = ['name', 'author']
 
@@ -252,7 +277,9 @@ admin.url = '/admin/'  #would not work on repl w/o this!
 admin.add_view(RecipeView(Recipe, db.session))
 admin.add_view(ModelView(Category, db.session))
 
-#----- Database -----#
+# ============================================================================
+#                               DATABASE
+
 with app.app_context():
   db.create_all()
 
