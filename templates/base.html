@@ -15,6 +15,20 @@
     <style>
       .fa {color: gold;}
       .wrapper {padding-left:5px;}
+      
+      /* colors for flash messages */
+      .error{
+        background-color:red;
+      }
+
+      .success{
+        background-color:green;
+      }
+
+      .warning{
+        background-color:yellow;
+      }
+
     </style>
     <!-- Title -->
   <h1 style=padding-left:5px;>{{title}}</h1>
@@ -34,6 +48,20 @@
 
     <!---------- webpage content will live inside the below div ---------->
   <div class="wrapper">
+    <!------ Applies error in add_recipe ------>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+        <div class="w3-panel {{ category }}" style="max-width:500px; position:relative">
+          <span onclick="this.parentElement.style.display='none'"
+          class="w3-button w3-large w3-display-topright">&times;</span>
+          <h3>{{ category.title() }}</h3>
+             <p>{{ message }}</p>
+          {% endfor %}
+        </div> 
+      {% endif %}
+    {% endwith %}
+
     {% block content %}
     {% endblock %}
   </div>

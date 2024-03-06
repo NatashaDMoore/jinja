@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for
+from flask import Flask, render_template, request, url_for, redirect, flash
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 
@@ -9,6 +9,9 @@ import os
 import json
 
 import utils as util
+
+# import recipeadd
+from forms import RecipeAdd
 
 # Database
 from models import db
@@ -113,6 +116,43 @@ def register_data(form_data):
       for key, value in form_data.items()
   ]
 
+# --- Recipe add_form route with feedback ---
+
+@app.route('/add_recipe', methods=['GET', 'POST'])
+def add_recipe():
+    form = RecipeAdd()
+
+    # Populate the category choices dynamically
+    form.category_id.choices = [(category.id, category.name) for category in Category.query.all()]
+
+    if request.method == 'POST' and form.validate_on_submit():
+        # Create a new recipe instance and add it to the database
+        new_recipe = Recipe(
+            name=form.name.data,
+            author=form.author.data,
+            description=form.description.data,
+            ingredients=form.ingredients.data,
+            instructions=form.instructions.data,
+            rating=form.rating.data,
+            category_id=form.category_id.data
+        )
+        db.session.add(new_recipe)
+        db.session.commit()
+
+        #inform user of success!
+        flash('Recipe added successfully!', 'success')
+        return redirect(url_for('recipes'))
+
+    #form did NOT validate
+    if request.method == 'POST' and not form.validate():
+          for field, errors in form.errors.items():
+              for error in errors:
+                  flash(f"Error in {field}: {error}", 'error')
+          return render_template('add_recipe.html', form=form)
+
+    #default via GET shows form  
+    return render_template('add_recipe.html', form=form)
+
 
 #----- Recipes Page -----#
 @app.route("/recipes")
@@ -122,10 +162,11 @@ def recipes():
   context = {"title": title, "recipes": all_recipes}
   return render_template("recipes.html", **context)
 
+
 #----- Recipe Page -----#
 @app.route("/recipe/<int:recipe_id>")
 def recipe(recipe_id):
-  this_recipe = Recipe.query.get(recipe_id)
+  this_recipe = db.session.get(Recipe, recipe_id)
   title = "Recipe"
   context = {"title": "Recipe", "recipe": this_recipe}
   if this_recipe:
@@ -204,12 +245,12 @@ def load_user_data(user_number):
 class RecipeView(ModelView):
   column_searchable_list = ['name', 'author']
 
+
 # Admin page
 admin = Admin(app)
 admin.url = '/admin/'  #would not work on repl w/o this!
 admin.add_view(RecipeView(Recipe, db.session))
 admin.add_view(ModelView(Category, db.session))
-
 
 #----- Database -----#
 with app.app_context():
