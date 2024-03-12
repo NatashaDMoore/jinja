@@ -23,12 +23,9 @@
 
    {% endfor %}
 
-  <p><a href="/add_recipe">Add Recipe</a></p>
-   
-    <!-- <ul>
-        {% for recipe in recipes %}
-            <li><a href="{{ url_for('recipe', recipe_id=recipe.id) }}">{{ recipe.name }}</a></li>
-        {% endfor %}
-    </ul> -->
+   {% if current_user.is_authenticated %}
+     <p><a href="/add_recipe">Add Recipe</a></p>
+   {% endif %}
+
    
 {% endblock %}

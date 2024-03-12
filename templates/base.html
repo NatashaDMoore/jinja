@@ -34,7 +34,7 @@
   <h1 style=padding-left:5px;>{{title}}</h1>
     
     <!-- Nav -->
-    <div class="w3-bar w3-black">
+    <nav class="w3-bar w3-black">
       <a href="/" class="w3-bar-item w3-button">Home</a>
       <a href="/about" class="w3-bar-item w3-button">About</a>
       <a href="/hipster" class="w3-bar-item w3-button">Hipster</a>
@@ -43,8 +43,20 @@
       <a href="/register" class="w3-bar-item w3-button">Register</a>
       <a href="/users" class="w3-bar-item w3-button">Users</a>
       <a href="/recipes" class="w3-bar-item w3-button">Recipes</a>
+      <a href="/sign_up" class="w3-bar-item w3-button">Sign Up</a>
+      {% if current_user.is_authenticated %}
+        <a href="/logout" class="w3-bar-item w3-button">Logout</a>
+      {% else %}
+        <a href="/login" class="w3-bar-item w3-button">Login</a>
+      {% endif %}
       <a href="/admin/" class="w3-bar-item w3-button">Admin</a>
-    </div>
+    </nav>
+
+  <!-- Reminder to logout -->
+    {% if current_user.is_authenticated %}
+      <p><em>Chef <b>{{ current_user.first_name }}</b> is logged in.  Don't forget to <a href="/logout">Logout</a>!</em></p>
+    {% endif %}
+
 
     <!---------- webpage content will live inside the below div ---------->
   <div class="wrapper">
@@ -52,15 +64,18 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-        <div class="w3-panel {{ category }}" style="max-width:500px; position:relative">
-          <span onclick="this.parentElement.style.display='none'"
+          {% if category != 'message' %}
+          <div class="w3-panel {{ category }}" style="max-width:500px; position:relative">
+            <span onclick="this.parentElement.style.display='none'"
           class="w3-button w3-large w3-display-topright">&times;</span>
-          <h3>{{ category.title() }}</h3>
-             <p>{{ message }}</p>
-          {% endfor %}
-        </div> 
+            <h3>{{ category.title() }}</h3>
+            <p>{{ message }}</p>
+          </div>
+            {% endif %}
+        {% endfor %}
       {% endif %}
     {% endwith %}
+
 
     {% block content %}
     {% endblock %}
