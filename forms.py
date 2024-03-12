@@ -4,6 +4,9 @@ from wtforms import StringField, TextAreaField, FloatField, SelectField, Decimal
 
 from wtforms.validators import InputRequired
 
+from flask_wtf.file import FileField, FileAllowed
+from wtforms.validators import DataRequired
+
 
 # RECIPE ADD FORM
 class RecipeAdd(FlaskForm):
@@ -36,16 +39,36 @@ class RecipeEdit(FlaskForm):
 
 # LOGIN FORM
 class LoginForm(FlaskForm):
-  email = StringField('Email', validators=[validators.DataRequired(), validators.Email()])
+  email = StringField(
+      'Email', validators=[validators.DataRequired(),
+                           validators.Email()])
   password = PasswordField('Password', validators=[validators.DataRequired()])
   submit = SubmitField('Login')
 
 
 # REGISTRATION FORM
 class RegistrationForm(FlaskForm):
-  first_name = StringField('First Name', validators=[validators.DataRequired()])
+  first_name = StringField('First Name',
+                           validators=[validators.DataRequired()])
   last_name = StringField('Last Name', validators=[validators.DataRequired()])
-  email = StringField('Email', validators=[validators.DataRequired(), validators.Email()])
+  email = StringField(
+      'Email', validators=[validators.DataRequired(),
+                           validators.Email()])
   password = PasswordField('Password', validators=[validators.DataRequired()])
-  confirm_password = PasswordField('Confirm Password', validators=[validators.DataRequired(), validators.EqualTo('password', message='Passwords must match')])
+  confirm_password = PasswordField('Confirm Password',
+                                   validators=[
+                                       validators.DataRequired(),
+                                       validators.EqualTo(
+                                           'password',
+                                           message='Passwords must match')
+                                   ])
   submit = SubmitField('Register')
+
+
+# FORM TO UPLOAD RECIPE PIC
+class RecipePicForm(FlaskForm):
+  picture = FileField('Recipe Picture',
+                      validators=[
+                          DataRequired(),
+                          FileAllowed(['jpg'], 'Only JPG files allowed.')
+                      ])

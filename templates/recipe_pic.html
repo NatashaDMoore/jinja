@@ -1,0 +1,13 @@
+<!-- recipe_pic.htm -->
+
+{% extends "base.html" %} 
+{% block content %}
+ <h3>Upload Recipe Picture</h3>
+  <form method="POST" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+      <p>{{ form.picture.label }}: {{ form.picture }}</p>
+      <p>{{ form.picture.errors }}</p>
+      <p><input type="submit" value="Upload"></p>
+  </form>
+
+{% endblock %}

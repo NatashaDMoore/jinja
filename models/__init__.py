@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-from .recipe import Recipe
-from .category import Category
-from .chef import Chef
+from models import db
+from models.category import Category
+from models.recipe import Recipe
+from models.chef import Chef
